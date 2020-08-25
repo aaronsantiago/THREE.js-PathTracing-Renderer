@@ -5,7 +5,7 @@ precision highp sampler2D;
 #include <pathtracing_uniforms_and_defines>
 
 #define N_SPHERES 3
-#define N_QUADS 3
+#define N_QUADS 6
 
 
 //-----------------------------------------------------------------------
@@ -61,6 +61,18 @@ float SceneIntersect( Ray r, inout Intersection intersec )
 			intersec.color = quads[i].color;
 			intersec.type = quads[i].type;
 		}
+		else {
+
+			d = QuadIntersect( quads[i].v3, quads[i].v2, quads[i].v1, quads[i].v0, r, false );
+			if (d < t)
+			{
+				t = d;
+				intersec.normal = normalize( -quads[i].normal );
+				intersec.emission = quads[i].emission;
+				intersec.color = quads[i].color;
+				intersec.type = quads[i].type;
+			}
+		}
         }
 	
 	return t;
@@ -88,10 +100,10 @@ void sampleEquiAngular( float u, float maxDistance, Ray r, vec3 lightPos, out fl
 }
 
 
-#define FOG_COLOR vec3(0.05, 0.05, 0.4) // color of the fog / participating medium
-#define FOG_DENSITY 0.0005 // this is dependent on the particular scene size dimensions
+#define FOG_COLOR vec3(0.05, 0.05, 0.1) // color of the fog / participating medium
+#define FOG_DENSITY 0.0001 // this is dependent on the particular scene size dimensions
 #define LIGHT_COLOR vec3(1.0, 1.0, 1.0) // color of light source
-#define LIGHT_POWER 30.0 // brightness of light source
+#define LIGHT_POWER 300.0 // brightness of light source
 
 //-----------------------------------------------------------------------
 vec3 CalculateRadiance( Ray r, inout uvec2 seed )
@@ -384,7 +396,7 @@ void SetupScene(void)
 	vec3 z  = vec3(0.0);// No color value, Black        
 	vec3 L1 = LIGHT_COLOR * LIGHT_POWER;
 		    
-	spheres[0] = Sphere( 10.0, vec3(275.0, 430.0, -280.0), L1, z, LIGHT);// Light Sphere
+	spheres[0] = Sphere( 10.0, vec3(275.0, 930.0, -280.0), L1, z, LIGHT);// Light Sphere
 	
 	spheres[1] = Sphere(  90.0, vec3(170.0, 201.0, -200.0),  z, vec3(1.0, 1.0, 1.0),  REFR);// Glass Sphere Left
 	spheres[2] = Sphere(  90.0, vec3(390.0, 250.0, -250.0),  z, vec3(1.0, 1.0, 1.0),  COAT);// ClearCoat Sphere Right
@@ -392,8 +404,9 @@ void SetupScene(void)
 	quads[0] = Quad( vec3( 0, 0, 1), vec3(  0.0,   0.0,-559.2), vec3(549.6,   0.0,-559.2), vec3(549.6, 548.8,-559.2), vec3(  0.0, 548.8,-559.2), z, vec3( 1.0,  1.0,  1.0), DIFF);// Back Wall
 	quads[1] = Quad( vec3( 1, 0, 0), vec3(  0.0,   0.0,   0.0), vec3(  0.0,   0.0,-559.2), vec3(  0.0, 548.8,-559.2), vec3(  0.0, 548.8,   0.0), z, vec3( 0.7, 0.05, 0.05), DIFF);// Left Wall Red
 	quads[2] = Quad( vec3(-1, 0, 0), vec3(549.6,   0.0,-559.2), vec3(549.6,   0.0,   0.0), vec3(549.6, 548.8,   0.0), vec3(549.6, 548.8,-559.2), z, vec3(0.05, 0.05, 0.7 ), DIFF);// Right Wall Blue
-	//quads[3] = Quad( vec3( 0,-1, 0), vec3(  0.0, 548.8,-559.2), vec3(549.6, 548.8,-559.2), vec3(549.6, 548.8,   0.0), vec3(  0.0, 548.8,   0.0), z, vec3( 1.0,  1.0,  1.0), DIFF);// Ceiling
-	//quads[4] = Quad( vec3( 0, 1, 0), vec3(  0.0,   0.0,   0.0), vec3(549.6,   0.0,   0.0), vec3(549.6,   0.0,-559.2), vec3(  0.0,   0.0,-559.2), z, vec3( 1.0,  1.0,  1.0), DIFF);// Floor
+	quads[3] = Quad( vec3( 0, 1, 0), vec3(  0.0,   0.0,   0.0), vec3(549.6,   0.0,   0.0), vec3(549.6,   0.0,-559.2), vec3(  0.0,   0.0,-559.2), z, vec3( 1.0,  1.0,  1.0), DIFF);// Floor
+	quads[4] = Quad( vec3( 348.6,-1, 0), vec3(  348.6, 548.8,-559.2), vec3(442.4, 548.8,-559.2), vec3(442.4, 548.8,   0.0), vec3(  348.6, 548.8,   0.0), z, vec3( 1.0,  1.0,  1.0), DIFF);// Ceiling
+	quads[5] = Quad( vec3( 100.0,-1, 0), vec3(  100.0, 548.8,-559.2), vec3(201.4, 548.8,-559.2), vec3(201.4, 548.8,   0.0), vec3(  100.0, 548.8,   0.0), z, vec3( 1.0,  1.0,  1.0), DIFF);// Ceiling
 	
 }
 
